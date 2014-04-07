@@ -27,14 +27,25 @@
 #include <dirent.h>
 
 
+/**
+ * The maximum length of PATH
+ */
 #ifndef MAXPATH
 #define MAXPATH  4096
 #endif
 
+/**
+ * The number of buckets to use
+ * when deduplicating
+ */
 #ifndef BUCKETS
 #define BUCKETS  32
 #endif
 
+/**
+ * The size of the buckets to
+ * use when deduplicating
+ */
 #ifndef BUCKET_SIZE
 #define BUCKET_SIZE  128
 #endif
@@ -49,11 +60,15 @@
  */
 int main(int argc, char** argv)
 {
+  /* Get current PATH and user home  */
   char* path = getenv("PATH");
   char* fake_home = getenv("HOME");
   char* real_home = getpwuid(getuid()) ? getpwuid(getuid())->pw_dir : NULL;
+  
+  /* Unified PATH */
   char unicorn_path[MAXPATH];
   
+  /* Get the largest possible PATH */
   #define _bin(DIR)			\
     ":" DIR "/bin"   ":" DIR "/xbin"	\
     ":" DIR "/sbin"  ":" DIR "/sxbin"
@@ -73,54 +88,86 @@ int main(int argc, char** argv)
   
   #undef _bin
   
+  /* Remove non-existant and duplicates (by inode) */
   {
-    char* end = unicorn_path + strlen(unicorn_path) + 1;
-    char* p_end;
-    char* p;
+    /* The location to write the next unique path in */
     char* p_uniq = unicorn_path;
+    /* The end PATH */
+    char* end = unicorn_path + strlen(unicorn_path) + 1;
+    /* The end of the current directory in PATH */
+    char* p_end;
+    /* The current directory in PATH */
+    char* p;
     
+    /* Buckets used or identifying duplicates */
     ino_t ino_buckets[BUCKETS][BUCKET_SIZE];
     dev_t dev_buckets[BUCKETS][BUCKET_SIZE];
     int bucket_ptrs[BUCKETS] = {0};
     
+    /* Start deduplication */
     for (p = unicorn_path; p != end; p = p_end + 1)
       {
 	struct stat attr;
 	
+	/* Find the character delimiting the current
+	   directory and the next directory */
 	p_end = strchrnul(p, ':');
+	/* NUL-terminate the current directory */
 	*p_end = '\0';
+	/* Do nothing for this directory if it
+	   is just an empty string and not an
+	   actual directory */
 	if (*p == '\0')
 	  continue;
 	
+	/* Include the directory only if it exists,
+	   while getting identification of the directory */
 	if (stat(p, &attr) == 0)
 	  {
+	    /* Base what bucket we use on the least
+	       significant (highest verity) digits of
+	       the directory's inode number */
 	    int bucket = attr.st_ino % BUCKETS;
+	    /* Get how many items we have in the bucket */
 	    int bucket_ptr = bucket_ptrs[bucket];
+	    /* Inode number hemibucket */
 	    ino_t* ino_bucket = ino_buckets[bucket];
+	    /* Device number hemibucket */
 	    dev_t* dev_bucket = dev_buckets[bucket];
 	    int i;
 	    
+	    /* Check if the directory is a duplicate */
 	    for (i = 0; i < bucket_ptr; i++)
 	      if (ino_bucket[i] == attr.st_ino)
 		if (dev_bucket[i] == attr.st_dev)
 		  break;
 	    
+	    /* Ignore the directory if it is a duplicate */
 	    if (i < bucket_ptr)
 	      continue;
 	    
-	    memcpy(p_uniq, p, (p_end - p) * sizeof(char));
+	    /* List the directory */
+	    if (p != p_uniq)
+	      /* Write it only if there no overlap,
+	         a partial overlap is impossible */
+	      memcpy(p_uniq, p, (p_end - p) * sizeof(char));
 	    p_uniq += p_end - p;
+	    /* Colon-terminate */
 	    *p_uniq++ = ':';
 	    
+	    /* Do not add the directory to the bucket if
+	       the bucket is full */
 	    if (bucket_ptr == BUCKET_SIZE)
 	      continue;
 	    
+	    /* Otherwise, add the directory to the bucket */
 	    bucket_ptrs[bucket] = i + 1;
 	    ino_bucket[i] = attr.st_ino;
 	    dev_bucket[i] = attr.st_dev;
 	  }
       }
     
+    /* NUL-terminate our new PATH */
     *--p_uniq = '\0';
   }
   

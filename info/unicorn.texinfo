@@ -61,14 +61,63 @@ Texts. A copy of the license is included in the section entitled
 @node Overview
 @chapter Overview
 
-Lorem ipsum
+@command{unicorn} is a command that
+lets you temporarily add all existing
+possible command paths, like
+@file{/usr/bin}, to the @var{PATH}
+environment variable.
 
 
 
 @node Invoking
 @chapter Invoking
 
-Lorem ipsum
+@command{unicorn} can be started with
+either no option or exactly one of these
+options:
+
+@table @option
+@item -p
+@itemx --preserve-env
+Attempt to execute the command without
+updating the environment variable
+@var{PATH}. Whether it will be successful
+does not depend on this option; this
+option only affects the the behaviour
+of the program and the directories that
+program should look in when searching
+for commands to execute.
+
+@item -h
+@itemx --help
+Print help information.
+
+@item -c
+@itemx --copying
+@itemx --copyright
+Print copyright information.
+
+@item -w
+@itemx --warranty
+Print non-warranty information.
+
+@end table
+
+All argument after a @option{--}
+or any argument not starting with
+a dash (`-') and all subsequent
+arguments are interpreted as an
+argument of the command to execute.
+
+It is also possible to running
+@command{unicorn} with exactly
+two arguments (excluding the name
+of the command @command{unicorn})
+and let the first of those arguments
+be @option{-}. In this case,
+@command{unicorn} will print all
+existing commands whose names start
+with the second argument.
 
 
 

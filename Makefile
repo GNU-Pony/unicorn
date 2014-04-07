@@ -95,14 +95,14 @@ pdf: unicorn.pdf
 %.pdf: info/%.texinfo info/fdl.texinfo
 	mkdir -p obj
 	cd obj ; yes X | texi2pdf ../$<
-	mv info/$@ $@
+	mv obj/$@ $@
 
 .PHONY: dvi
 dvi: unicorn.dvi
 %.dvi: info/%.texinfo info/fdl.texinfo
 	mkdir -p obj
 	cd obj ; yes X | $(TEXI2DVI) ../$<
-	mv info/$@ $@
+	mv obj/$@ $@
 
 .PHONY: ps
 ps: unicorn.ps

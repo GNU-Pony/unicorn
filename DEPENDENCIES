@@ -8,4 +8,5 @@ BUILD DEPENDENCIES
 	make
 	coreutils
 	auto-auto-complete (opt-out)
+	texinfo (opt-out)
 

@@ -25,5 +25,6 @@
   
   (suggestion command (exec unicorn - "''"))
   ; TODO  it is preferable if the scripts utilised unicorn's power to filter
+  ;       and if further arguments could be relays to that command's scripts
 )
 

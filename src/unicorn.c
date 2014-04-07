@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 
 
 #ifndef MAXPATH
@@ -125,17 +126,31 @@ int main(int argc, char** argv)
   
   if ((argc == 3) && (argv[1][0] == '-') && (argv[1][1] == 0))
     {
+      char* command = argv[2];
       char* end = unicorn_path + strlen(unicorn_path) + 1;
       char* p_end;
       char* p;
       
       for (p = unicorn_path; p != end; p = p_end + 1)
 	{
+	  DIR* dir;
+	  struct dirent* file;
+	  
 	  p_end = strchrnul(p, ':');
 	  *p_end = '\0';
 	  
-	  printf("%s\n", p);
+	  if ((dir = opendir(p)) == NULL)
+	    continue;
+	  
+	  while ((file = readdir(dir)) != NULL)
+	    if (strstr(file->d_name, command) == file->d_name)
+	      if (strcmp(file->d_name, ".") && strcmp(file->d_name, ".."))
+		printf("%s\n", file->d_name);
+	  
+	  closedir(dir);
 	}
+      
+      return 0;
     }
   
   return 0;

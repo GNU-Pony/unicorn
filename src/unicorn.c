@@ -171,29 +171,45 @@ int main(int argc, char** argv)
     *--p_uniq = '\0';
   }
   
+  /* Autocomplete command name */
   if ((argc == 3) && (argv[1][0] == '-') && (argv[1][1] == 0))
     {
+      /* The command name to complete */
       char* command = argv[2];
+      /* The end of our PATH */
       char* end = unicorn_path + strlen(unicorn_path) + 1;
+      /* The end of the current directory */
       char* p_end;
+      /* The current directory */
       char* p;
       
+      /* Look for commands in each directory in our PATH */
       for (p = unicorn_path; p != end; p = p_end + 1)
 	{
 	  DIR* dir;
 	  struct dirent* file;
 	  
+	  /* Find the character delimiting the current
+	     directory and the next directory */
 	  p_end = strchrnul(p, ':');
+	  /* NUL-terminate the current directory */
 	  *p_end = '\0';
 	  
+	  /* Opem the directory, skip to next on error */
 	  if ((dir = opendir(p)) == NULL)
 	    continue;
 	  
+	  /* Compare all files in the directory agains the partial command name  */
 	  while ((file = readdir(dir)) != NULL)
+	    /* Check that the file name starts with the partial name of the command */
 	    if (strstr(file->d_name, command) == file->d_name)
+	      /* Check that the found command does not match those so
+	         ridiculously included . and .. */
 	      if (strcmp(file->d_name, ".") && strcmp(file->d_name, ".."))
+		/* Print the found commend */
 		printf("%s\n", file->d_name);
 	  
+	  /* Close the directory */
 	  closedir(dir);
 	}
       

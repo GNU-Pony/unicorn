@@ -15,3 +15,8 @@ _/
 *.out
 *.gch
 
+*.info
+*.pdf
+*.ps
+*.dvi
+

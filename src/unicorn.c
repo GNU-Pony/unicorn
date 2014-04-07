@@ -30,8 +30,8 @@
 /**
  * The maximum length of PATH
  */
-#ifndef MAXPATH
-#define MAXPATH  4096
+#ifndef MAX_PATH
+#define MAX_PATH  4096
 #endif
 
 /**
@@ -52,6 +52,17 @@
 
 
 /**
+ * Define SKIP_ACCESS if you do not
+ * want unicorn to verify that found
+ * files are commands when listing
+ * matching command names
+ */
+#ifndef SKIP_ACCESS
+#define CHECK_ACCESS
+#endif
+
+
+/**
  * This is the main entry point of the program
  * 
  * @param   argc  The number of elements in `argv`
@@ -66,14 +77,14 @@ int main(int argc, char** argv)
   char* real_home = getpwuid(getuid()) ? getpwuid(getuid())->pw_dir : NULL;
   
   /* Unified PATH */
-  char unicorn_path[MAXPATH];
+  char unicorn_path[MAX_PATH];
   
   /* Get the largest possible PATH */
   #define _bin(DIR)			\
     ":" DIR "/bin"   ":" DIR "/xbin"	\
     ":" DIR "/sbin"  ":" DIR "/sxbin"
   
-  snprintf(unicorn_path, MAXPATH,
+  snprintf(unicorn_path, MAX_PATH,
            "%s"
            _bin("/usr/local")  _bin("/usr/local/games")
            _bin("/usr")        _bin("/usr/games")
@@ -182,6 +193,11 @@ int main(int argc, char** argv)
       char* p_end;
       /* The current directory */
       char* p;
+
+#ifdef CHECK_ACCESS
+      /* The pathname of the found file */
+      char pathname[MAX_PATH];
+#endif
       
       /* Look for commands in each directory in our PATH */
       for (p = unicorn_path; p != end; p = p_end + 1)
@@ -206,8 +222,19 @@ int main(int argc, char** argv)
 	      /* Check that the found command does not match those so
 	         ridiculously included . and .. */
 	      if (strcmp(file->d_name, ".") && strcmp(file->d_name, ".."))
-		/* Print the found commend */
-		printf("%s\n", file->d_name);
+		{
+#ifdef CHECK_ACCESS
+		  /* Concatenate the directory and the file */
+		  sprintf(pathname, "%s/%s", p, file->d_name);
+		  
+		  /* Check that the found command is executable */
+		  if (access(pathname, X_OK))
+		    continue;
+#endif
+		  
+		  /* Print the found commend */
+		  printf("%s\n", file->d_name);
+		}
 	  
 	  /* Close the directory */
 	  closedir(dir);

@@ -153,7 +153,7 @@ int main(int argc, char** argv)
 	    if (p != p_uniq)
 	      /* Write it only if there no overlap,
 	         a partial overlap is impossible */
-	      memcpy(p_uniq, p, (p_end - p) * sizeof(char));
+	      memcpy(p_uniq, p, (size_t)(p_end - p) * sizeof(char));
 	    p_uniq += p_end - p;
 	    /* Colon-terminate */
 	    *p_uniq++ = ':';
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
       int preserve_env = 0;
       char* command_file = NULL;
       char** command_args;
-      int command_argc;
+      size_t command_argc;
       char* command;
       int i;
       
@@ -309,7 +309,7 @@ int main(int argc, char** argv)
 	  return 1;
 	}
       command = *(command_args = argv + i);
-      command_argc = argc - i;
+      command_argc = (size_t)(argc - i);
       
       /* Use the path of the command if it was specified */
       if (strchr(command, '/'))

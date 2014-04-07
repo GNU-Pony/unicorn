@@ -7,4 +7,5 @@ BUILD DEPENDENCIES
 	gcc
 	make
 	coreutils
+	auto-auto-complete (opt-out)
 

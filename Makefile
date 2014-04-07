@@ -45,10 +45,10 @@ FLAGS = -std=$(STD) $(WARN) $(OPTIMISE) $(CFLAGS) $(LDFLAGS) $(CPPFLAGS)
 # Build rules
 
 .PHONY: default
-default: command shell # info
+default: command shell info
 
 .PHONY: all
-all: command shell # doc
+all: command shell doc
 
 .PHONY: command
 command: bin/unicorn
@@ -56,7 +56,6 @@ command: bin/unicorn
 bin/unicorn: src/unicorn.c
 	@mkdir -p bin
 	$(CC) $(FLAGS) -o $@ $^
-
 
 # Build rules for shell auto-completion
 
@@ -81,46 +80,45 @@ bin/unicorn.fish: src/completion
 	@mkdir -p bin
 	auto-auto-complete fish --output $@ --source $<
 
-
 # Build rules for documentation
 
-#.PHONY: doc
-#doc: info pdf dvi ps
-#
-#.PHONY: info
-#info: unicorn.info
-#%.info: info/%.texinfo info/fdl.texinfo
-#	makeinfo $<
-#
-#.PHONY: pdf
-#pdf: unicorn.pdf
-#%.pdf: info/%.texinfo info/fdl.texinfo
-#	mkdir -p obj
-#	cd obj ; yes X | texi2pdf ../$<
-#	mv info/$@ $@
-#
-#.PHONY: dvi
-#dvi: unicorn.dvi
-#%.dvi: info/%.texinfo info/fdl.texinfo
-#	mkdir -p obj
-#	cd obj ; yes X | $(TEXI2DVI) ../$<
-#	mv info/$@ $@
-#
-#.PHONY: ps
-#ps: unicorn.ps
-#%.ps: info/%.texinfo info/fdl.texinfo
-#	mkdir -p obj
-#	cd obj ; yes X | texi2pdf --ps ../$<
-#	mv obj/$@ $@
+.PHONY: doc
+doc: info pdf dvi ps
+
+.PHONY: info
+info: unicorn.info
+%.info: info/%.texinfo info/fdl.texinfo
+	makeinfo $<
+
+.PHONY: pdf
+pdf: unicorn.pdf
+%.pdf: info/%.texinfo info/fdl.texinfo
+	mkdir -p obj
+	cd obj ; yes X | texi2pdf ../$<
+	mv info/$@ $@
+
+.PHONY: dvi
+dvi: unicorn.dvi
+%.dvi: info/%.texinfo info/fdl.texinfo
+	mkdir -p obj
+	cd obj ; yes X | $(TEXI2DVI) ../$<
+	mv info/$@ $@
+
+.PHONY: ps
+ps: unicorn.ps
+%.ps: info/%.texinfo info/fdl.texinfo
+	mkdir -p obj
+	cd obj ; yes X | texi2pdf --ps ../$<
+	mv obj/$@ $@
 
 
 # Install rules
 
 .PHONY: install
-install: install-base install-shell # install-info
+install: install-base install-shell install-info
 
 .PHONY: install
-install-all: install-base install-shell # install-doc
+install-all: install-base install-shell install-doc
 
 # Install base rules
 
@@ -157,36 +155,31 @@ install-fish: bin/unicorn.fish
 	install -dm755 -- "$(DESTDIR)$(DATADIR)/fish/completions"
 	install -m644 $< -- "$(DESTDIR)$(DATADIR)/fish/completions/$(COMMAND).fish"
 
-
 # Install documentation
 
-#.PHONY: install-doc
-#install-doc: install-info install-pdf install-ps install-dvi install-examples
-#
-#.PHONY: install-examples
-#install-examples: $(foreach E,$(EXAMPLES),examples/$(E))
-#	install -dm755 -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME)/examples"
-#	install -m644 $^ -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME)/examples"
-#
-#.PHONY: install-info
-#install-info: unicorn.info
-#	install -dm755 -- "$(DESTDIR)$(INFODIR)"
-#	install -m644 $< -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
-#
-#.PHONY: install-pdf
-#install-pdf: unicorn.pdf
-#	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
-#	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
-#
-#.PHONY: install-ps
-#install-ps: unicorn.ps
-#	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
-#	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
-#
-#.PHONY: install-dvi
-#install-dvi: unicorn.dvi
-#	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
-#	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
+.PHONY: install-doc
+install-doc: install-info install-pdf install-ps install-dvi
+
+.PHONY: install-info
+install-info: unicorn.info
+	install -dm755 -- "$(DESTDIR)$(INFODIR)"
+	install -m644 $< -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
+
+.PHONY: install-pdf
+install-pdf: unicorn.pdf
+	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
+	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
+
+.PHONY: install-ps
+install-ps: unicorn.ps
+	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
+	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
+
+.PHONY: install-dvi
+install-dvi: unicorn.dvi
+	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
+	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
+
 
 # Uninstall rules
 
@@ -204,10 +197,10 @@ uninstall:
 	-rm -- "$(DESTDIR)$(DATADIR)/bash-completion/completions/$(COMMAND)"
 	-rmdir -- "$(DESTDIR)$(DATADIR)/bash-completion/completions"
 	-rmdir -- "$(DESTDIR)$(DATADIR)/bash-completion"
-#	-rm -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
-#	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
-#	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
-#	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
+	-rm -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
+	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
+	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
+	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
 
 
 # Clean rules

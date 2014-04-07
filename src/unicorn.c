@@ -260,7 +260,7 @@ int main(int argc, char** argv)
 		     *argv,
 		     "    -p (--preserve-env)    Do not update PATH in the environment\n"
 		     "\n"
-		     "    -h (--heelp)           Print this help\n"
+		     "    -h (--help)            Print this help\n"
 		     "    -c (--copyright)       Print copyright information\n"
 		     "    -w (--warranty)        Print warranty disclaimer");
 	      return 0;

@@ -52,17 +52,6 @@
 
 
 /**
- * Define SKIP_ACCESS if you do not
- * want unicorn to verify that found
- * files are commands when listing
- * matching command names
- */
-#ifndef SKIP_ACCESS
-#define CHECK_ACCESS
-#endif
-
-
-/**
  * This is the main entry point of the program
  * 
  * @param   argc  The number of elements in `argv`
@@ -193,11 +182,9 @@ int main(int argc, char** argv)
       char* p_end;
       /* The current directory */
       char* p;
-
-#ifdef CHECK_ACCESS
+      
       /* The pathname of the found file */
       char pathname[MAX_PATH];
-#endif
       
       /* Look for commands in each directory in our PATH */
       for (p = unicorn_path; p != end; p = p_end + 1)
@@ -223,17 +210,23 @@ int main(int argc, char** argv)
 	         ridiculously included . and .. */
 	      if (strcmp(file->d_name, ".") && strcmp(file->d_name, ".."))
 		{
-#ifdef CHECK_ACCESS
+		  struct stat attr;
+		  mode_t mode;
+		  
 		  /* Concatenate the directory and the file */
 		  sprintf(pathname, "%s/%s", p, file->d_name);
 		  
-		  /* Check that the found command is executable */
-		  if (access(pathname, X_OK))
+		  /* Get file stat, ignore on failure (removed or broken link)  */
+		  if (stat(pathname, &attr))
 		    continue;
-#endif
 		  
-		  /* Print the found commend */
-		  printf("%s\n", file->d_name);
+		  /* Check that the file (symlinks followed) an
+		     executable (by anypony) regulare file (keep
+		     in mind, directories are normally executable) */
+		  mode = attr.st_mode;
+		  if (S_ISREG(mode) && ((S_IXUSR | S_IXGRP | S_IXOTH) & mode))
+		    /* Print the found commend */
+		    printf("%s\n", file->d_name);
 		}
 	  
 	  /* Close the directory */

@@ -45,10 +45,10 @@ FLAGS = -std=$(STD) $(WARN) $(OPTIMISE) $(CFLAGS) $(LDFLAGS) $(CPPFLAGS)
 # Build rules
 
 .PHONY: default
-default: command # info shell
+default: command shell # info
 
 .PHONY: all
-all: command # doc shell
+all: command shell # doc
 
 .PHONY: command
 command: bin/unicorn
@@ -56,6 +56,30 @@ command: bin/unicorn
 bin/unicorn: src/unicorn.c
 	@mkdir -p bin
 	$(CC) $(FLAGS) -o $@ $^
+
+
+# Build rules for shell auto-completion
+
+.PHONY: shell
+shell: bash zsh fish
+
+.PHONY: bash
+bash: bin/unicorn.bash
+bin/unicorn.bash: src/completion
+	@mkdir -p bin
+	auto-auto-complete bash --output $@ --source $<
+
+.PHONY: zsh
+zsh: bin/unicorn.zsh
+bin/unicorn.zsh: src/completion
+	@mkdir -p bin
+	auto-auto-complete zsh --output $@ --source $<
+
+.PHONY: fish
+fish: bin/unicorn.fish
+bin/unicorn.fish: src/completion
+	@mkdir -p bin
+	auto-auto-complete fish --output $@ --source $<
 
 
 # Build rules for documentation
@@ -90,37 +114,13 @@ bin/unicorn: src/unicorn.c
 #	mv obj/$@ $@
 
 
-# Build rules for shell auto-completion
-
-#.PHONY: shell
-#shell: bash zsh fish
-#
-#.PHONY: bash
-#bash: bin/unicorn.bash
-#bin/unicorn.bash: src/completion
-#	@mkdir -p bin
-#	auto-auto-complete bash --output $@ --source $<
-#
-#.PHONY: zsh
-#zsh: bin/unicorn.zsh
-#bin/unicorn.zsh: src/completion
-#	@mkdir -p bin
-#	auto-auto-complete zsh --output $@ --source $<
-#
-#.PHONY: fish
-#fish: bin/unicorn.fish
-#bin/unicorn.fish: src/completion
-#	@mkdir -p bin
-#	auto-auto-complete fish --output $@ --source $<
-
-
 # Install rules
 
 .PHONY: install
-install: install-base # install-info install-shell
+install: install-base install-shell # install-info
 
 .PHONY: install
-install-all: install-base # install-doc install-shell
+install-all: install-base install-shell # install-doc
 
 # Install base rules
 
@@ -136,6 +136,27 @@ install-command: bin/unicorn
 install-license:
 	install -dm755 -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
 	install -m644 COPYING LICENSE -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
+
+# Install shell auto-completion
+
+.PHONY: install-shell
+install-shell: install-bash install-zsh install-fish
+
+.PHONY: install-bash
+install-bash: bin/unicorn.bash
+	install -dm755 -- "$(DESTDIR)$(DATADIR)/bash-completion/completions"
+	install -m644 $< -- "$(DESTDIR)$(DATADIR)/bash-completion/completions/$(COMMAND)"
+
+.PHONY: install-zsh
+install-zsh: bin/unicorn.zsh
+	install -dm755 -- "$(DESTDIR)$(DATADIR)/zsh/site-functions"
+	install -m644 $< -- "$(DESTDIR)$(DATADIR)/zsh/site-functions/_$(COMMAND)"
+
+.PHONY: install-fish
+install-fish: bin/unicorn.fish
+	install -dm755 -- "$(DESTDIR)$(DATADIR)/fish/completions"
+	install -m644 $< -- "$(DESTDIR)$(DATADIR)/fish/completions/$(COMMAND).fish"
+
 
 # Install documentation
 
@@ -167,27 +188,6 @@ install-license:
 #	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
 #	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
 
-# Install shell auto-completion
-
-#.PHONY: install-shell
-#install-shell: install-bash install-zsh install-fish
-#
-#.PHONY: install-bash
-#install-bash: bin/unicorn.bash
-#	install -dm755 -- "$(DESTDIR)$(DATADIR)/bash-completion/completions"
-#	install -m644 $< -- "$(DESTDIR)$(DATADIR)/bash-completion/completions/$(COMMAND)"
-#
-#.PHONY: install-zsh
-#install-zsh: bin/unicorn.zsh
-#	install -dm755 -- "$(DESTDIR)$(DATADIR)/zsh/site-functions"
-#	install -m644 $< -- "$(DESTDIR)$(DATADIR)/zsh/site-functions/_$(COMMAND)"
-#
-#.PHONY: install-fish
-#install-fish: bin/unicorn.fish
-#	install -dm755 -- "$(DESTDIR)$(DATADIR)/fish/completions"
-#	install -m644 $< -- "$(DESTDIR)$(DATADIR)/fish/completions/$(COMMAND).fish"
-
-
 # Uninstall rules
 
 .PHONY: uninstall
@@ -195,21 +195,19 @@ uninstall:
 	-rm -- "$(DESTDIR)$(BINDIR)/$(COMMAND)"
 	-rm -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/COPYING"
 	-rm -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/LICENSE"
-#	-rmdir -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME)/examples"
-#	-rmdir -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME)"
+	-rm -- "$(DESTDIR)$(DATADIR)/fish/completions/$(COMMAND).fish"
+	-rmdir -- "$(DESTDIR)$(DATADIR)/fish/completions"
+	-rmdir -- "$(DESTDIR)$(DATADIR)/fish"
+	-rm -- "$(DESTDIR)$(DATADIR)/zsh/site-functions/_$(COMMAND)"
+	-rmdir -- "$(DESTDIR)$(DATADIR)/zsh/site-functions"
+	-rmdir -- "$(DESTDIR)$(DATADIR)/zsh"
+	-rm -- "$(DESTDIR)$(DATADIR)/bash-completion/completions/$(COMMAND)"
+	-rmdir -- "$(DESTDIR)$(DATADIR)/bash-completion/completions"
+	-rmdir -- "$(DESTDIR)$(DATADIR)/bash-completion"
 #	-rm -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
 #	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
 #	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
 #	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
-#	-rm -- "$(DESTDIR)$(DATADIR)/fish/completions/$(COMMAND).fish"
-#	-rmdir -- "$(DESTDIR)$(DATADIR)/fish/completions"
-#	-rmdir -- "$(DESTDIR)$(DATADIR)/fish"
-#	-rm -- "$(DESTDIR)$(DATADIR)/zsh/site-functions/_$(COMMAND)"
-#	-rmdir -- "$(DESTDIR)$(DATADIR)/zsh/site-functions"
-#	-rmdir -- "$(DESTDIR)$(DATADIR)/zsh"
-#	-rm -- "$(DESTDIR)$(DATADIR)/bash-completion/completions/$(COMMAND)"
-#	-rmdir -- "$(DESTDIR)$(DATADIR)/bash-completion/completions"
-#	-rmdir -- "$(DESTDIR)$(DATADIR)/bash-completion"
 
 
 # Clean rules

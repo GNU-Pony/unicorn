@@ -1,0 +1,29 @@
+; Copyright © 2014  Mattias Andrée (maandree@member.fsf.org)
+; 
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(unicorn
+  (default (arg COMMAND) (files -0) (suggest command) (desc 'Command to run'))
+  
+  (multiple unargumented
+    ((options -p --preserve-env)        (complete --preserve-env) (desc 'Do not update $PATH'))
+    ((options -h --help)                (complete --help)         (desc 'Prints help information'))
+    ((options -c --copying --copyright) (complete --copyright)    (desc 'Prints copyright information'))
+    ((options -w --warranty)            (complete --warranty)     (desc 'Prints non-warranty information'))
+  )
+  
+  (suggestion command (exec unicorn - "''"))
+  ; TODO  it is preferable if the scripts utilised unicorn's power to filter
+)
+

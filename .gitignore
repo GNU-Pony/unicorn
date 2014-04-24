@@ -14,6 +14,7 @@ _/
 *.o
 *.out
 *.gch
+*.su
 
 *.info
 *.pdf
